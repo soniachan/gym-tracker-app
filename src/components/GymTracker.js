@@ -160,12 +160,15 @@ const GymTracker = () => {
   };
   
   const bodyParts = [
-    { emoji: '💪', name: 'Arms' },
+    { emoji: '💪', name: 'Biceps' },
+    { emoji: '🔥', name: 'Triceps' },
     { emoji: '🦵', name: 'Legs' },
     { emoji: '🫀', name: 'Cardio' },
     { emoji: '🏋️', name: 'Back' },
     { emoji: '🍈', name: 'Chest' },
-    { emoji: '🦴', name: 'Core' }
+    { emoji: '🦴', name: 'Core' },
+    { emoji: '🤲', name: 'Shoulders' },
+    { emoji: '🍫', name: 'Abs' }
   ];
   
   const today = useMemo(() => {
