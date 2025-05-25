@@ -583,55 +583,57 @@ const GymTracker = () => {
                   {todayWorkouts.map(workout => (
                     <div 
                       key={workout.id} 
-                      className={`flex items-center justify-between bg-slate-50 border border-slate-200 p-4 rounded-lg transition-all duration-200 ${
+                      className={`bg-slate-50 border border-slate-200 p-3 rounded-lg transition-all duration-200 ${
                         removingWorkoutId === workout.id ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
                       }`}
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-orange-100 border border-orange-200 rounded-lg flex items-center justify-center text-orange-600">
-                          <MuscleIcon type={workout.bodyPart.icon} size={20} />
-                        </div>
-                        <div>
-                          <div className="font-medium text-slate-800">{workout.bodyPart.name}</div>
-                          <div className="text-sm text-slate-500">
-                            {new Date(workout.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <div className="w-10 h-10 bg-orange-100 border border-orange-200 rounded-lg flex items-center justify-center text-orange-600 flex-shrink-0">
+                            <MuscleIcon type={workout.bodyPart.icon} size={20} />
                           </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center bg-white border border-slate-200 rounded-lg">
-                          <button 
-                            onClick={() => decrementSets(workout.id)}
-                            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-l-lg transition-colors"
-                            disabled={workout.sets <= 1}
-                          >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                          <div className="px-4 py-2 text-sm font-medium text-slate-700 min-w-[80px] text-center border-x border-slate-200">
-                            {workout.sets || 1} {workout.sets === 1 ? 'set' : 'sets'}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-slate-800 truncate">{workout.bodyPart.name}</div>
+                            <div className="text-sm text-slate-500">
+                              {new Date(workout.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </div>
                           </div>
-                          <button 
-                            onClick={() => incrementSets(workout.id)}
-                            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-r-lg transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                            </svg>
-                          </button>
                         </div>
                         
                         <button 
                           onClick={() => removeWorkout(workout.id)}
-                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0 ml-2"
                           title="Remove workout"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                           </svg>
                         </button>
+                      </div>
+                      
+                      <div className="flex justify-center">
+                        <div className="flex items-center bg-white border border-slate-200 rounded-lg">
+                          <button 
+                            onClick={() => decrementSets(workout.id)}
+                            className="p-3 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-l-lg transition-colors"
+                            disabled={workout.sets <= 1}
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          <div className="px-6 py-3 text-sm font-medium text-slate-700 min-w-[100px] text-center border-x border-slate-200">
+                            {workout.sets || 1} {workout.sets === 1 ? 'set' : 'sets'}
+                          </div>
+                          <button 
+                            onClick={() => incrementSets(workout.id)}
+                            className="p-3 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-r-lg transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -813,8 +815,8 @@ const GymTracker = () => {
               </h2>
             </div>
             
-            {/* Week Calendar */}
-            <div className="grid grid-cols-7 gap-3">
+            {/* Week Calendar - Mobile Optimized */}
+            <div className="space-y-3">
               {Array.from({ length: 7 }).map((_, index) => {
                 const currentDate = new Date(startOfWeek);
                 currentDate.setDate(startOfWeek.getDate() + index);
@@ -824,50 +826,70 @@ const GymTracker = () => {
                 
                 return (
                   <div key={index} className={`bg-white rounded-xl shadow-sm border p-4 transition-all duration-200 ${
-                    isToday ? 'ring-2 ring-orange-300 border-orange-200 bg-orange-50' : 'border-slate-200 hover:shadow-md'
+                    isToday ? 'ring-2 ring-orange-300 border-orange-200 bg-orange-50' : 'border-slate-200'
                   }`}>
-                    <div className="text-center mb-3">
-                      <div className={`text-sm font-medium ${isToday ? 'text-orange-700' : 'text-slate-600'}`}>
-                        {currentDate.toLocaleDateString('en-US', { weekday: 'short' })}
-                      </div>
-                      <div className={`text-lg font-bold ${isToday ? 'text-orange-800' : 'text-slate-800'}`}>
-                        {currentDate.toLocaleDateString('en-US', { day: 'numeric' })}
-                      </div>
-                    </div>
-                    
-                    {dayWorkouts.length > 0 ? (
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          {Array.from(new Set(dayWorkouts.map(w => w.bodyPart.name))).map(partName => {
-                            const part = bodyParts.find(p => p.name === partName);
-                            if (!part) return null;
-                            return (
-                              <div key={partName} className="w-6 h-6 bg-orange-100 border border-orange-200 rounded-md flex items-center justify-center text-orange-600" title={partName}>
-                                <MuscleIcon type={part.icon} size={14} />
-                              </div>
-                            );
-                          })}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`text-center ${isToday ? 'text-orange-700' : 'text-slate-600'}`}>
+                          <div className="text-sm font-medium">
+                            {currentDate.toLocaleDateString('en-US', { weekday: 'short' })}
+                          </div>
+                          <div className={`text-xl font-bold ${isToday ? 'text-orange-800' : 'text-slate-800'}`}>
+                            {currentDate.toLocaleDateString('en-US', { day: 'numeric' })}
+                          </div>
                         </div>
                         
-                        {dayWorkouts.length > 1 && (
-                          <div className="text-xs text-center text-slate-500 bg-slate-100 rounded-md px-2 py-1">
-                            {(() => {
-                              const firstTime = Math.min(...dayWorkouts.map(w => new Date(w.timestamp).getTime()));
-                              const lastTime = Math.max(...dayWorkouts.map(w => new Date(w.timestamp).getTime()));
-                              const diffMs = lastTime - firstTime;
-                              const diffMins = Math.floor(diffMs / 60000);
-                              const hours = Math.floor(diffMins / 60);
-                              const mins = diffMins % 60;
-                              return `${hours > 0 ? `${hours}h ${mins}m` : `${mins}m`}`;
-                            })()}
+                        {dayWorkouts.length > 0 && (
+                          <div className="flex items-center space-x-2">
+                            <div className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs font-medium">
+                              {dayWorkouts.length} {dayWorkouts.length === 1 ? 'workout' : 'workouts'}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {dayWorkouts.reduce((sum, w) => sum + (w.sets || 1), 0)} sets
+                            </div>
                           </div>
                         )}
                       </div>
-                    ) : (
-                      <div className="text-center py-2">
-                        <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
-                          <div className="w-2 h-2 bg-slate-300 rounded-full"></div>
+                      
+                      {dayWorkouts.length > 1 && (
+                        <div className="text-xs text-slate-500 bg-slate-100 rounded-md px-2 py-1">
+                          {(() => {
+                            const firstTime = Math.min(...dayWorkouts.map(w => new Date(w.timestamp).getTime()));
+                            const lastTime = Math.max(...dayWorkouts.map(w => new Date(w.timestamp).getTime()));
+                            const diffMs = lastTime - firstTime;
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const hours = Math.floor(diffMins / 60);
+                            const mins = diffMins % 60;
+                            return `${hours > 0 ? `${hours}h ${mins}m` : `${mins}m`}`;
+                          })()}
                         </div>
+                      )}
+                    </div>
+                    
+                    {dayWorkouts.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {Array.from(new Set(dayWorkouts.map(w => w.bodyPart.name))).map(partName => {
+                          const part = bodyParts.find(p => p.name === partName);
+                          const partWorkouts = dayWorkouts.filter(w => w.bodyPart.name === partName);
+                          const totalSets = partWorkouts.reduce((sum, w) => sum + (w.sets || 1), 0);
+                          
+                          if (!part) return null;
+                          return (
+                            <div key={partName} className="flex items-center space-x-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                              <div className="w-5 h-5 text-orange-600">
+                                <MuscleIcon type={part.icon} size={16} />
+                              </div>
+                              <span className="text-sm font-medium text-orange-700">{part.name}</span>
+                              <span className="text-xs text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full">
+                                {totalSets}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <div className="text-sm text-slate-400">No workouts</div>
                       </div>
                     )}
                   </div>
@@ -1110,19 +1132,10 @@ const GymTracker = () => {
                         </div>
                         
                         {dayWorkouts.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {uniqueBodyParts.slice(0, 3).map(partName => {
-                              const part = bodyParts.find(p => p.name === partName);
-                              if (!part) return null;
-                              return (
-                                <div key={partName} className="w-3 h-3 bg-emerald-400 rounded-full" title={partName}></div>
-                              );
-                            })}
-                            {uniqueBodyParts.length > 3 && (
-                              <div className="w-3 h-3 bg-slate-400 rounded-full text-xs text-white flex items-center justify-center" title={`+${uniqueBodyParts.length - 3} more`}>
-                                +
-                              </div>
-                            )}
+                          <div className="flex items-center justify-center">
+                            <div className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md text-xs font-bold">
+                              {dayWorkouts.reduce((sum, w) => sum + (w.sets || 1), 0)}
+                            </div>
                           </div>
                         )}
                       </div>
