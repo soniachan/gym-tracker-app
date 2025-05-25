@@ -162,7 +162,7 @@ const GymTracker = () => {
     }
   };
   
-  const bodyParts = [
+  const bodyParts = useMemo(() => [
     { icon: 'biceps', name: 'Biceps', emoji: '💪' },
     { icon: 'triceps', name: 'Triceps', emoji: '🔥' },
     { icon: 'legs', name: 'Legs', emoji: '🦵' },
@@ -172,7 +172,7 @@ const GymTracker = () => {
     { icon: 'glutes', name: 'Glutes', emoji: '🦴' },
     { icon: 'shoulders', name: 'Shoulders', emoji: '🤲' },
     { icon: 'abs', name: 'Abs', emoji: '🍫' }
-  ];
+  ], []);
   
   // Icon component for muscle groups
   const MuscleIcon = ({ type, size = 24 }) => {
@@ -371,7 +371,7 @@ const GymTracker = () => {
 
   
   // Count sets by body part
-  const countSetsByBodyPart = (workoutList) => {
+  const countSetsByBodyPart = useCallback((workoutList) => {
     const counts = {};
     bodyParts.forEach(part => {
       counts[part.name] = 0;
@@ -382,7 +382,7 @@ const GymTracker = () => {
     });
     
     return counts;
-  };
+  }, [bodyParts]);
   
   // Calculate muscle group strength levels (like gaming stats)
   const calculateMuscleStats = useCallback(() => {
@@ -430,7 +430,7 @@ const GymTracker = () => {
     });
     
     return stats;
-  }, [workouts, bodyParts]);
+  }, [workouts, bodyParts, countSetsByBodyPart]);
   
   const muscleStats = useMemo(() => calculateMuscleStats(), [calculateMuscleStats]);
   
