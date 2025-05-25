@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none; /* Prevents pull-to-refresh on mobile */
+  -webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
+  position: fixed; /* Prevents address bar from showing/hiding on scroll */
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* iOS specific styling to make it feel more like a native app */
+* {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+input, textarea {
+  user-select: auto;
+}
+
+/* Hide scrollbars on iOS while preserving functionality */
+::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  scroll-behavior: smooth;
+}
