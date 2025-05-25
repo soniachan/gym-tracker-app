@@ -96,12 +96,13 @@ const GymTracker = () => {
     }
   }, []);
   
-  // Auto backup to IndexedDB instead of localStorage
+  // Load data on component mount
   useEffect(() => {
-    // Load data when component mounts
     loadFromIndexedDB();
-    
-    // Set up an interval to auto-backup every 5 minutes
+  }, [loadFromIndexedDB]);
+
+  // Auto backup to IndexedDB - separate effect to avoid dependency issues
+  useEffect(() => {
     const autoBackupInterval = setInterval(() => {
       // Only auto-save if it's been more than 2 minutes since last manual save
       const timeSinceLastSave = Date.now() - lastSaveTime.current;
@@ -112,7 +113,7 @@ const GymTracker = () => {
     }, 5 * 60 * 1000); // 5 minutes
     
     return () => clearInterval(autoBackupInterval);
-  }, [loadFromIndexedDB, saveToIndexedDB]); // Removed workouts dependency to prevent constant re-runs
+  }, [workouts, saveToIndexedDB]); // Now properly includes workouts dependency
   
   // Save whenever workouts change, but debounce to prevent multiple rapid saves
   useEffect(() => {
