@@ -11,10 +11,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none; /* Prevents pull-to-refresh on mobile */
   -webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
-  position: fixed; /* Prevents address bar from showing/hiding on scroll */
+  min-height: 100vh; /* Changed from fixed positioning to min-height */
   width: 100%;
-  height: 100%;
-  overflow: auto;
 }
 
 code {
@@ -28,6 +26,16 @@ code {
   user-select: none;
 }
 
+/* Only transition specific properties to avoid layout shifts */
+button {
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Prevent layout shift during content changes */
+.flex-grow, .bg-white, .rounded-lg, .shadow {
+  will-change: auto;
+}
+
 input, textarea {
   user-select: auto;
 }
@@ -39,4 +47,95 @@ input, textarea {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Specific styling for workout list items to prevent layout shift */
+li {
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Remove problematic hover transforms that can cause shaking */
+/* button:hover and button:active removed */
+
+/* Ensure containers maintain their space during animations */
+.space-y-2 > * {
+  margin-bottom: 0.5rem !important;
+  margin-top: 0 !important;
+}
+
+/* Prevent any unwanted animations on list items except opacity */
+ul, li {
+  transition: none !important;
+}
+
+/* Allow only opacity transitions for workout items */
+.workout-list div {
+  transition: opacity 0.15s ease-out !important;
+}
+
+/* Prevent all other transitions on divs */
+div:not(.workout-list div) {
+  transition: none !important;
+}
+
+/* Stable container to prevent layout shift on delete */
+.workout-container {
+  min-height: fit-content;
+  contain: layout style;
+  isolation: isolate;
+}
+
+/* Force reflow prevention */
+.space-y-2 {
+  contain: layout;
+}
+
+/* Stable workout list */
+.workout-list {
+  contain: layout style;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.workout-list > div {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition: opacity 0.15s ease-out;
+  grid-column: 1;
+}
+
+/* Ensure smooth fade transition */
+.transition-opacity {
+  transition-property: opacity;
+  transition-timing-function: ease-out;
+}
+
+/* Additional stability fixes for button interactions */
+button {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Prevent any layout shifts during state changes */
+.flex.flex-col.min-h-screen {
+  contain: layout style;
+}
+
+/* Stable grid layout for buttons */
+.grid.grid-cols-3 {
+  contain: layout;
+}
+
+.grid.grid-cols-3 button {
+  contain: layout style;
+  will-change: background-color;
 }

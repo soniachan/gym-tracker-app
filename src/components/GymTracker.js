@@ -1,35 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, BarChart2, Download, Upload, Save, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Calendar, ChevronLeft, ChevronRight, BarChart2 } from 'lucide-react';
 
 const GymTracker = () => {
   const [workouts, setWorkouts] = useState([]);
   const [view, setView] = useState('today'); // 'today', 'week', or 'month'
-  const [showDataModal, setShowDataModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [backupStatus, setBackupStatus] = useState('');
-  const fileInputRef = useRef(null);
-  
-  // Auto backup to IndexedDB instead of localStorage
-  useEffect(() => {
-    // Load data when component mounts
-    loadFromIndexedDB();
-    
-    // Set up an interval to auto-backup every 5 minutes
-    const autoBackupInterval = setInterval(() => {
-      if (workouts.length > 0) {
-        saveToIndexedDB(workouts);
-      }
-    }, 5 * 60 * 1000); // 5 minutes
-    
-    return () => clearInterval(autoBackupInterval);
-  }, []);
-  
-  // Save whenever workouts change
-  useEffect(() => {
-    if (workouts.length > 0) {
-      saveToIndexedDB(workouts);
-    }
-  }, [workouts]);
+  const [removingWorkoutId, setRemovingWorkoutId] = useState(null);
+  const isInitialMount = useRef(true);
+  const lastSaveTime = useRef(0);
   
   // IndexedDB Setup
   const DB_NAME = 'GymTrackerDB';
@@ -57,8 +36,10 @@ const GymTracker = () => {
     });
   };
   
-  const saveToIndexedDB = async (data) => {
+  const saveToIndexedDB = useCallback(async (data, showStatus = false) => {
     try {
+      lastSaveTime.current = Date.now(); // Track when we last saved
+      
       const db = await openDatabase();
       const transaction = db.transaction([STORE_NAME], 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
@@ -66,14 +47,23 @@ const GymTracker = () => {
       // Clear existing data
       store.clear();
       
-      // Store each workout separately
-      data.forEach(workout => {
-        store.add(workout);
-      });
+      // Store each workout separately - handle empty array case
+      if (data.length === 0) {
+        // If no workouts, we still want to clear the store (deletion case)
+        console.log('Clearing all workouts from IndexedDB');
+      } else {
+        data.forEach(workout => {
+          store.add(workout);
+        });
+      }
       
       transaction.oncomplete = () => {
-        setBackupStatus('Saved to device storage');
-        setTimeout(() => setBackupStatus(''), 2000);
+        // Only show status messages when explicitly requested to reduce re-renders
+        if (showStatus) {
+          setBackupStatus(data.length === 0 ? 'Workout deleted' : 'Saved to device storage');
+          setTimeout(() => setBackupStatus(''), 2000);
+        }
+        console.log(`Saved ${data.length} workouts to IndexedDB`); // Debug logging
       };
       
       transaction.onerror = (event) => {
@@ -82,9 +72,9 @@ const GymTracker = () => {
     } catch (error) {
       console.error('Failed to save to IndexedDB:', error);
     }
-  };
+  }, []);
   
-  const loadFromIndexedDB = async () => {
+  const loadFromIndexedDB = useCallback(async () => {
     try {
       const db = await openDatabase();
       const transaction = db.transaction([STORE_NAME], 'readonly');
@@ -94,8 +84,7 @@ const GymTracker = () => {
       request.onsuccess = () => {
         if (request.result.length > 0) {
           setWorkouts(request.result);
-          setBackupStatus('Data loaded from device');
-          setTimeout(() => setBackupStatus(''), 2000);
+          // Removed status update on load to prevent initial shaking
         }
       };
       
@@ -105,50 +94,43 @@ const GymTracker = () => {
     } catch (error) {
       console.error('Failed to load from IndexedDB:', error);
     }
-  };
+  }, []);
   
-  // Data Management Functions
-  const exportData = () => {
-    const dataStr = JSON.stringify(workouts, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+  // Auto backup to IndexedDB instead of localStorage
+  useEffect(() => {
+    // Load data when component mounts
+    loadFromIndexedDB();
     
-    const exportFileDefaultName = `gym-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    setShowDataModal(false);
-  };
-  
-  const importData = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (Array.isArray(data)) {
-          setWorkouts(data);
-          saveToIndexedDB(data);
-          alert('Workout data successfully imported!');
-        } else {
-          alert('Invalid data format. Please select a valid backup file.');
-        }
-      } catch (error) {
-        alert('Error reading file: ' + error.message);
+    // Set up an interval to auto-backup every 5 minutes
+    const autoBackupInterval = setInterval(() => {
+      // Only auto-save if it's been more than 2 minutes since last manual save
+      const timeSinceLastSave = Date.now() - lastSaveTime.current;
+      if (timeSinceLastSave > 2 * 60 * 1000) { // 2 minutes
+        console.log('Auto-backup triggered');
+        saveToIndexedDB(workouts);
       }
-    };
-    reader.readAsText(file);
+    }, 5 * 60 * 1000); // 5 minutes
     
-    setShowDataModal(false);
-  };
+    return () => clearInterval(autoBackupInterval);
+  }, [loadFromIndexedDB, saveToIndexedDB]); // Removed workouts dependency to prevent constant re-runs
   
-  const triggerFileInput = () => {
-    fileInputRef.current.click();
-  };
+  // Save whenever workouts change, but debounce to prevent multiple rapid saves
+  useEffect(() => {
+    // Skip saving on initial mount to prevent unnecessary operations
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    // Save whether workouts array has items or is empty (important for deletions!)
+    const timeoutId = setTimeout(() => {
+      saveToIndexedDB(workouts);
+    }, 500); // Reduced debounce to 500ms to ensure deletions are saved quickly
+    
+    return () => clearTimeout(timeoutId);
+  }, [workouts, saveToIndexedDB]);
+  
+
   
   const clearAllWorkouts = async () => {
     try {
@@ -181,44 +163,59 @@ const GymTracker = () => {
     { emoji: '🦵', name: 'Legs' },
     { emoji: '🫀', name: 'Cardio' },
     { emoji: '🏋️', name: 'Back' },
-    { emoji: '🍈🍈', name: 'Chest' },
+    { emoji: '🍈', name: 'Chest' },
     { emoji: '🦴', name: 'Core' }
   ];
   
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Set to beginning of day for proper comparison
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0); // Set to beginning of day for proper comparison
+    return date;
+  }, []);
   
-  const addWorkout = (bodyPart) => {
+  const addWorkout = useCallback((bodyPart) => {
     const workout = {
-      id: Date.now(),
+      id: Date.now() + Math.random(), // Ensure unique ID to prevent conflicts
       date: today.toISOString(),
       bodyPart,
       timestamp: new Date().toISOString(),
       sets: 1, // Initialize with 1 set
     };
     
-    setWorkouts([...workouts, workout]);
-  };
+    setWorkouts(prevWorkouts => [...prevWorkouts, workout]);
+  }, [today]);
   
-  const incrementSets = (id) => {
-    setWorkouts(workouts.map(workout => 
+  const incrementSets = useCallback((id) => {
+    setWorkouts(prevWorkouts => prevWorkouts.map(workout => 
       workout.id === id 
         ? { ...workout, sets: (workout.sets || 1) + 1 } 
         : workout
     ));
-  };
+  }, []);
   
-  const decrementSets = (id) => {
-    setWorkouts(workouts.map(workout => 
+  const decrementSets = useCallback((id) => {
+    setWorkouts(prevWorkouts => prevWorkouts.map(workout => 
       workout.id === id && workout.sets > 1
         ? { ...workout, sets: workout.sets - 1 } 
         : workout
     ));
-  };
+  }, []);
   
-  const removeWorkout = (id) => {
-    setWorkouts(workouts.filter(workout => workout.id !== id));
-  };
+  const removeWorkout = useCallback((id) => {
+    setRemovingWorkoutId(id);
+    // Add a small delay to allow fade animation
+    setTimeout(() => {
+      setWorkouts(prevWorkouts => {
+        const updatedWorkouts = prevWorkouts.filter(workout => workout.id !== id);
+        // Immediately save to IndexedDB after deletion to prevent data persistence issues
+        setTimeout(() => {
+          saveToIndexedDB(updatedWorkouts, true); // Show status to confirm deletion was saved
+        }, 100);
+        return updatedWorkouts;
+      });
+      setRemovingWorkoutId(null);
+    }, 150);
+  }, [saveToIndexedDB]);
   
   // Get workouts for today
   const todayWorkouts = workouts.filter(workout => {
@@ -311,19 +308,7 @@ const GymTracker = () => {
   const groupedWeekWorkouts = groupWorkoutsByDate(weekWorkouts);
   const groupedMonthWorkouts = groupWorkoutsByDate(monthWorkouts);
   
-  // Format date for display
-  const formatDate = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return 'Invalid date';
-      }
-      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    } catch (error) {
-      console.error('Error formatting date:', dateString);
-      return 'Invalid date';
-    }
-  };
+
   
   // Count sets by body part
   const countSetsByBodyPart = (workoutList) => {
@@ -345,7 +330,7 @@ const GymTracker = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 p-4">
       <header className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Gym Tracker</h1>
+        <h1 className="text-2xl font-bold text-gray-800">GYM TRACKER</h1>
         
         <div className="flex justify-center mt-2 items-center">
           {backupStatus && (
@@ -403,7 +388,7 @@ const GymTracker = () => {
           </div>
           
           {todayWorkouts.length > 0 ? (
-            <div className="bg-white rounded-lg shadow p-4">
+            <div className="bg-white rounded-lg shadow p-4 workout-container">
               <h3 className="font-semibold mb-2 text-gray-700">Today's Workouts</h3>
               
               {todayWorkouts.length > 1 && (
@@ -432,9 +417,14 @@ const GymTracker = () => {
                 </div>
               )}
               
-              <ul className="space-y-2">
+              <div className="workout-list">
                 {todayWorkouts.map(workout => (
-                  <li key={workout.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                  <div 
+                    key={workout.id} 
+                    className={`flex items-center justify-between bg-gray-50 p-3 rounded mb-2 transition-opacity duration-150 ${
+                      removingWorkoutId === workout.id ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
                     <span className="flex items-center">
                       <span className="text-xl mr-2">{workout.bodyPart.emoji}</span>
                       <span className="text-gray-700">{workout.bodyPart.name}</span>
@@ -463,14 +453,14 @@ const GymTracker = () => {
                       </span>
                       <button 
                         onClick={() => removeWorkout(workout.id)}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center"
                       >
                         ✕
                       </button>
                     </span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           ) : (
             <div className="text-center py-6 bg-white rounded-lg shadow">
