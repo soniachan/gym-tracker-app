@@ -1115,7 +1115,6 @@ const GymTracker = () => {
                     const dateStr = date.toLocaleDateString();
                     const dayWorkouts = groupedMonthWorkouts[dateStr] || [];
                     const isToday = date.toLocaleDateString() === today.toLocaleDateString();
-                    const uniqueBodyParts = Array.from(new Set(dayWorkouts.map(w => w.bodyPart.name)));
                     
                     calendarCells.push(
                       <div key={day} className={`h-16 p-2 rounded-lg border transition-all duration-200 ${
