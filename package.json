@@ -2,7 +2,7 @@
   "name": "gym-tracker-app",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://YOUR_GITHUB_USERNAME.github.io/gym-tracker-app",
+  "homepage": "https://schan-harmonicinc.github.io/gym-tracker-app",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
